@@ -8,7 +8,19 @@ const routes = [
   // 如下是import()函数调用，好处是按需导入
   // @符号代表src目录的绝对路径名地址
   { path: '/login', name: 'login', component: () => import('@/views/login') },
-  { path: '/home', name: 'home', component: () => import('@/views/home') }
+  {
+    path: '/home',
+    name: 'home',
+    component: () => import('@/views/home'),
+    // 路由重定向
+    redirect: '/welcome',
+    children: [
+      // 欢迎页面子路由配置
+      { path: '/welcome', name: 'welcome', component: () => import('@/views/welcome') },
+      { path: '/article', name: 'article', component: () => import('@/views/article') },
+      { path: '/huoyin', name: 'huoyin', component: () => import('@/views/huoyin') }
+    ]
+  }
 ]
 
 const router = new VueRouter({

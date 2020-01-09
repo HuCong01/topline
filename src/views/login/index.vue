@@ -60,7 +60,7 @@ export default {
       loginForm: {
         mobile: '', // 手机号码
         code: '', // 校验码
-        xieyi: false // 协议
+        xieyi: true // 协议
       },
       loginFormRules: {
         mobile: [
