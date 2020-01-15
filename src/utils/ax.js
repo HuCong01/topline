@@ -3,6 +3,7 @@ import Vue from 'vue'
 
 import axios from 'axios'
 import router from '../router'
+import JSONbig from 'json-bigint'
 axios.defaults.baseURL = 'http://ttapi.research.itcast.cn/'
 Vue.prototype.$http = axios
 // 在所有请求之前执行的代码
@@ -36,3 +37,18 @@ axios.interceptors.response.use(function (response) {
   }
   return Promise.reject(error)
 })
+
+//   服务器返回 数据转换器  应用
+// 对服务器端返回来的数据信息做处理(尤其是大数字的处理)
+// axios配置"数据转换器"
+axios.defaults.transformResponse = [function (data) {
+  // 服务器端返回给客户端的data数据主要就两种类型
+  // 1) 字符串对象  '{xx:xx...}'
+  // 2) 空字符串   ''
+  // 在此处要利用JSONbig对返回的信息加以处理，如果不处理，系统默认是通过JSON.parse()给处理的
+  // 这样大数字就错误了
+  if (data) {
+    return JSONbig.parse(data)
+  }
+  return data
+}]

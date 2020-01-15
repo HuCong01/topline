@@ -11,24 +11,16 @@
         <el-form ref="searchFormRef" :model="searchForm" label-width="100px">
           <el-form-item label="文章状态:">
             <el-radio-group v-model="searchForm.status">
-              <el-radio  label>全部</el-radio>
-            <el-radio  :label="0">草稿</el-radio>
-            <el-radio  :label="1">待审核</el-radio>
-            <el-radio  :label="2">审核通过</el-radio>
-            <el-radio  :label="3">审核失败</el-radio>
-            <el-radio  :label="4">已删除</el-radio>
+              <el-radio label>全部</el-radio>
+              <el-radio :label="0">草稿</el-radio>
+              <el-radio :label="1">待审核</el-radio>
+              <el-radio :label="2">审核通过</el-radio>
+              <el-radio :label="3">审核失败</el-radio>
+              <el-radio :label="4">已删除</el-radio>
             </el-radio-group>
           </el-form-item>
           <el-form-item label="频道列表:">
-            <!-- clearable：可以清除选中的项目 -->
-            <el-select v-model="searchForm.channel_id" placeholder="请选择" clearable>
-              <el-option
-                v-for="item in channelList"
-                :key="item.id"
-                :label="item.name"
-                :value="item.id"
-              ></el-option>
-            </el-select>
+           <channel @slt="selectHandler"></channel>
           </el-form-item>
           <el-form-item label="时间选择:">
             <el-date-picker
@@ -58,40 +50,47 @@
               height="100"
             />
           </el-table-column>
-          <el-table-column label="标题" prop="title" ></el-table-column>
-          <el-table-column label="状态" prop="status" >
-           <template slot-scope="stData">
+          <el-table-column label="标题" prop="title"></el-table-column>
+          <el-table-column label="状态" prop="status">
+            <template slot-scope="stData">
               <el-tag v-if="stData.row.status===0">草稿</el-tag>
-            <el-tag type="info"  v-else-if="stData.row.status===1">待审核</el-tag>
-            <el-tag type="success"  v-else-if="stData.row.status===2">审核通过</el-tag>
-            <el-tag type="warning"  v-else-if="stData.row.status===3">审核失败</el-tag>
-           </template>
+              <el-tag type="info" v-else-if="stData.row.status===1">待审核</el-tag>
+              <el-tag type="success" v-else-if="stData.row.status===2">审核通过</el-tag>
+              <el-tag type="warning" v-else-if="stData.row.status===3">审核失败</el-tag>
+            </template>
           </el-table-column>
           <el-table-column label="发布时间" prop="pubdate"></el-table-column>
           <el-table-column label="操作">
-            <el-button type="primary" size="mini">修改</el-button>
-            <el-button type="danger" size="mini">删除</el-button>
+         <template slot-scope="stData">
+  <el-button type="primary" size="mini"
+             @click="$router.push(`/articleedit/${stData.row.id}`)">修改</el-button>
+  <el-button type="danger" size="mini" @click="del(stData.row.id)">删除</el-button>
+</template>
           </el-table-column>
         </el-table>
         <!-- 分页效果 -->
         <el-pagination
-      @size-change="handleSizeChange"
-      @current-change="handleCurrentChange"
-      :current-page="searchForm.page"
-      :page-sizes="[10, 20, 30, 40]"
-      :page-size="searchForm.per_page"
-      layout="total, sizes, prev, pager, next, jumper"
-      :total="tot">
-    </el-pagination>
+          @size-change="handleSizeChange"
+          @current-change="handleCurrentChange"
+          :current-page="searchForm.page"
+          :page-sizes="[10, 20, 30, 40]"
+          :page-size="searchForm.per_page"
+          layout="total, sizes, prev, pager, next, jumper"
+          :total="tot"
+        ></el-pagination>
       </div>
     </el-card>
   </div>
 </template>
 
 <script>
+import Channel from '@/components/channel.vue'
 export default {
   name: 'ArticleList',
-
+  components: {
+    // 注册频道独立组件
+    Channel
+  },
   data () {
     return {
       searchForm: {
@@ -127,9 +126,39 @@ export default {
     }
   },
   methods: {
+    selectHandler (val) {
+      this.searchForm.channel_id = val
+    },
+    // 删除文章
+    del (id) {
+      this.$confirm('确认要删除该数据么?', '删除', {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'warning'
+      })
+        .then(() => {
+          // axios请求服务器端实现删除
+          let pro = this.$http({
+            url: '/mp/v1_0/articles/' + id,
+            method: 'delete'
+          })
+          pro
+            .then(result => {
+            // 删除成功
+              this.$message.success('删除文章成功')
+              // console.log(result)  // 返回空的data数据
+              // 直接页面刷新即可
+              this.getArticleList()
+            })
+            .catch(err => {
+              return this.$message.error('删除文章失败：' + err)
+            })
+        })
+        .catch(() => {})
+    },
     handleSizeChange (val) {
       // val:变化后的每页条数
-      this.searchForm.per_page = val// 根据变化后的每页条数重新获得文章列表
+      this.searchForm.per_page = val // 根据变化后的每页条数重新获得文章列表
       this.getArticleList()
     },
     handleCurrentChange (val) {

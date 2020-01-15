@@ -18,12 +18,12 @@
             <i class="el-icon-menu"></i>
             <span>内容管理</span>
           </template>
-          <el-menu-item index="2-1">发布文章</el-menu-item>
+          <el-menu-item index="/articleadd">发布文章</el-menu-item>
           <el-menu-item index="/article" >文章列表</el-menu-item>
           <el-menu-item index="2-3">评论列表</el-menu-item>
-          <el-menu-item index="2-4">素材管理</el-menu-item>
+          <el-menu-item index="/material">素材管理</el-menu-item>
         </el-submenu>
-        <el-menu-item index="3" :style="{width:isCollapse?'65px':'200px'}">
+        <el-menu-item index="/fans" :style="{width:isCollapse?'65px':'200px'}">
           <i class="el-icon-document"></i>
           <span slot="title">粉丝管理</span>
         </el-menu-item>
@@ -31,10 +31,10 @@
           <i class="el-icon-video-camera-solid"></i>
           <span slot="title">火影百秀</span>
         </el-menu-item>
-        <el-menu-item index="5" :style="{width:isCollapse?'65px':'200px'}">
-          <i class="el-icon-setting"></i>
-          <span slot="title">账户管理</span>
-        </el-menu-item>
+        <el-menu-item index="/account" :style="{width:isCollapse?'65px':'200px'}">
+  <i class="el-icon-location"></i>
+  <span slot="title">账户管理</span>
+</el-menu-item>
       </el-menu>
     </el-aside>
     <el-container>
@@ -76,18 +76,39 @@
 </template>
 
 <script>
+import bus from '@/utils/bus.js'
 export default {
+  created () {
+    // 1. 对  名称  进行更新
+    bus.$on('upAccountName', nm => {
+      // 更新sessionStorage中name的信息
+      let userinfo = JSON.parse(window.sessionStorage.getItem('userinfo'))
+      userinfo.name = nm
+      window.sessionStorage.setItem('userinfo', JSON.stringify(userinfo))
+      // 更新临时成员tmpname
+      this.tmpname = nm
+    })
+    // 2 对 头像进行更新
+    bus.$on('upAccountPhoto', ph => {
+      let userinfo = JSON.parse(window.sessionStorage.getItem('userinfo'))
+      userinfo.photo = ph
+      window.sessionStorage.setItem('userinfo', JSON.stringify(userinfo))
+      this.tmpphoto = ph
+    })
+  },
   computed: {
     name () {
-      return JSON.parse(window.sessionStorage.getItem('userinfo')).name
+      return this.tmpname || JSON.parse(window.sessionStorage.getItem('userinfo')).name
     },
     photo () {
-      return JSON.parse(window.sessionStorage.getItem('userinfo')).photo
+      return this.tmpphoto || JSON.parse(window.sessionStorage.getItem('userinfo')).photo
     }
   },
   data () {
     return {
-      isCollapse: true
+      isCollapse: true,
+      tmpname: '', // 临时账户名称
+      tmpphoto: ''// 临时账户头像
     }
   },
   methods: {
